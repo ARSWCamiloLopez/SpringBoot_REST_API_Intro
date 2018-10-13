@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -48,24 +49,51 @@ public class OrdersAPIController {
     @Autowired
     RestaurantOrderServices restOrderServices;
 
+    /**
+     *
+     * @return
+     */
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<?> getAllOrders() {
-                
+
         Set<Integer> numTables = restOrderServices.getTablesWithOrders();
         Map<Integer, Order> orders = new HashMap();
         String codeToJson = "";
-                
-        for(Integer x : numTables){
+
+        for (Integer x : numTables) {
             orders.put(x, restOrderServices.getTableOrder(x));
         }
-        
+
         codeToJson = new Gson().toJson(orders);
-        
-        try {            
+
+        try {
             return new ResponseEntity<>(codeToJson, HttpStatus.ACCEPTED);
         } catch (Exception ex) {
             Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
             return new ResponseEntity<>("No se ha podido retornar las ordenes", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     *
+     * @param idMesa
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.GET, path = "{idMesa}")
+    public ResponseEntity<?> getOrdersByIdTable(@PathVariable("idMesa") Integer idMesa) {
+
+        Map<Integer, Order> orders = new HashMap();
+        String codeToJson = "";
+
+        orders.put(idMesa, restOrderServices.getTableOrder(idMesa));
+
+        codeToJson = new Gson().toJson(orders);
+
+        try {
+            return new ResponseEntity<>(codeToJson, HttpStatus.ACCEPTED);
+        } catch (Exception ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("No se ha podido retornar la ordene", HttpStatus.NOT_FOUND);
         }
     }
 
