@@ -17,13 +17,16 @@
 package edu.eci.arsw.myrestaurant.restcontrollers;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import edu.eci.arsw.myrestaurant.model.Order;
 import edu.eci.arsw.myrestaurant.model.ProductType;
 import edu.eci.arsw.myrestaurant.model.RestaurantProduct;
+import edu.eci.arsw.myrestaurant.services.OrderServicesException;
 import edu.eci.arsw.myrestaurant.services.RestaurantOrderServices;
 import edu.eci.arsw.myrestaurant.services.RestaurantOrderServicesStub;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,6 +97,32 @@ public class OrdersAPIController {
         } catch (Exception ex) {
             Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
             return new ResponseEntity<>("No se ha podido retornar la ordene", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     *
+     * @param o
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<?> addNewOrder(@RequestBody String o) throws OrderServicesException {
+        
+        Type listType = new TypeToken<Map<Integer, Order>>(){}.getType();
+        Map<Integer, Order> orders = new Gson().fromJson(o, listType);
+        
+        Object[] keys = orders.keySet().toArray();
+        
+        Order orderToAdd = new Order((Integer) keys[0]);
+        orderToAdd.setOrderAmountsMap(orders.get((Integer) keys[0]).getOrderAmountsMap());
+        
+        restOrderServices.addNewOrderToTable(orderToAdd);
+        
+        try {
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (Exception ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error al añadir una nueva orden", HttpStatus.FORBIDDEN);
         }
     }
 
