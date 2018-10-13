@@ -16,13 +16,20 @@
  */
 package edu.eci.arsw.myrestaurant.restcontrollers;
 
+import com.google.gson.Gson;
 import edu.eci.arsw.myrestaurant.model.Order;
 import edu.eci.arsw.myrestaurant.model.ProductType;
 import edu.eci.arsw.myrestaurant.model.RestaurantProduct;
+import edu.eci.arsw.myrestaurant.services.RestaurantOrderServices;
 import edu.eci.arsw.myrestaurant.services.RestaurantOrderServicesStub;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +41,32 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author hcadavid
  */
+@RestController
+@RequestMapping(value = "/orders")
 public class OrdersAPIController {
 
-    
+    @Autowired
+    RestaurantOrderServices restOrderServices;
+
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<?> getAllOrders() {
+                
+        Set<Integer> numTables = restOrderServices.getTablesWithOrders();
+        Map<Integer, Order> orders = new HashMap();
+        String codeToJson = "";
+                
+        for(Integer x : numTables){
+            orders.put(x, restOrderServices.getTableOrder(x));
+        }
+        
+        codeToJson = new Gson().toJson(orders);
+        
+        try {            
+            return new ResponseEntity<>(codeToJson, HttpStatus.ACCEPTED);
+        } catch (Exception ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("No se ha podido retornar las ordenes", HttpStatus.NOT_FOUND);
+        }
+    }
+
 }
