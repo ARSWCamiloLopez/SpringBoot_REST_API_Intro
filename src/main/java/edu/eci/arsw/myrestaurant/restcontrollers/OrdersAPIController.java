@@ -17,6 +17,7 @@
 package edu.eci.arsw.myrestaurant.restcontrollers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import edu.eci.arsw.myrestaurant.model.Order;
 import edu.eci.arsw.myrestaurant.model.ProductType;
@@ -104,6 +105,7 @@ public class OrdersAPIController {
      *
      * @param o
      * @return
+     * @throws edu.eci.arsw.myrestaurant.services.OrderServicesException
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addNewOrder(@RequestBody String o) throws OrderServicesException {
@@ -130,10 +132,42 @@ public class OrdersAPIController {
     /**
      *
      * @param idMesa
+     * @param producto
      * @return
      * @throws OrderServicesException
      */
-    @RequestMapping(method = RequestMethod.GET, path = "/{idmesa}/total")
+    @RequestMapping(method = RequestMethod.PUT, path = "{idmesa}")
+    public ResponseEntity<?> addNewProductToATable(@PathVariable("idmesa") Integer idMesa,
+            @RequestBody String producto) throws OrderServicesException {
+
+        try {
+            Order orderToUpdate = restOrderServices.getTableOrder(idMesa);
+
+            //Pasar el String JSON a un Map
+            Type listType = new TypeToken<Map<String, Integer>>() {
+            }.getType();
+            Map<String, Integer> product = new Gson().fromJson(producto, listType);
+
+            //Obtener las llaves del Map
+            Object[] keys = product.keySet().toArray();            
+            
+            //Añadir el producto a la orden obteniendo los objetos en el Map
+            orderToUpdate.addDish((String) keys[0], product.get(keys[0]));
+            
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (JsonParseException ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error al añadir una nueva orden", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    /**
+     *
+     * @param idMesa
+     * @return
+     * @throws OrderServicesException
+     */
+    @RequestMapping(method = RequestMethod.GET, path = "{idmesa}/total")
     public ResponseEntity<?> calculateBillByTable(@PathVariable("idmesa") Integer idMesa) throws OrderServicesException {
 
         try {
