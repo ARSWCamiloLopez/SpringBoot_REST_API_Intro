@@ -107,22 +107,41 @@ public class OrdersAPIController {
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addNewOrder(@RequestBody String o) throws OrderServicesException {
-        
-        Type listType = new TypeToken<Map<Integer, Order>>(){}.getType();
+
+        Type listType = new TypeToken<Map<Integer, Order>>() {
+        }.getType();
         Map<Integer, Order> orders = new Gson().fromJson(o, listType);
-        
+
         Object[] keys = orders.keySet().toArray();
-        
+
         Order orderToAdd = new Order((Integer) keys[0]);
         orderToAdd.setOrderAmountsMap(orders.get((Integer) keys[0]).getOrderAmountsMap());
-        
+
         restOrderServices.addNewOrderToTable(orderToAdd);
-        
+
         try {
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (Exception ex) {
             Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
             return new ResponseEntity<>("Error al añadir una nueva orden", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    /**
+     *
+     * @param idMesa
+     * @return
+     * @throws OrderServicesException
+     */
+    @RequestMapping(method = RequestMethod.GET, path = "/{idmesa}/total")
+    public ResponseEntity<?> calculateBillByTable(@PathVariable("idmesa") Integer idMesa) throws OrderServicesException {
+
+        try {
+            Integer total = restOrderServices.calculateTableBill(idMesa);
+            return new ResponseEntity<>("Total: " + total, HttpStatus.ACCEPTED);
+        } catch (OrderServicesException ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("No se ha podido calcular el total", HttpStatus.NOT_FOUND);
         }
     }
 
