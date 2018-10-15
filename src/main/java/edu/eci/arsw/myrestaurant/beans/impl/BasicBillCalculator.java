@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
  *
  * @author camilolopez
  */
-@Service
+//@Service
 public class BasicBillCalculator implements BillCalculator {
 
     @Override

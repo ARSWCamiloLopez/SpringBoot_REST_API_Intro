@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
  *
  * @author camilolopez
  */
+@Service
 public class BillWithTaxesCalculator implements BillCalculator {
 
+    @Autowired
     TaxesCalculator taxescalc;
 
     /**
