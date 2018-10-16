@@ -149,11 +149,11 @@ public class OrdersAPIController {
             Map<String, Integer> product = new Gson().fromJson(producto, listType);
 
             //Obtener las llaves del Map
-            Object[] keys = product.keySet().toArray();            
-            
+            Object[] keys = product.keySet().toArray();
+
             //Añadir el producto a la orden obteniendo los objetos en el Map
             orderToUpdate.addDish((String) keys[0], product.get(keys[0]));
-            
+
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (JsonParseException ex) {
             Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
@@ -169,13 +169,28 @@ public class OrdersAPIController {
      */
     @RequestMapping(method = RequestMethod.GET, path = "{idmesa}/total")
     public ResponseEntity<?> calculateBillByTable(@PathVariable("idmesa") Integer idMesa) throws OrderServicesException {
-
         try {
             Integer total = restOrderServices.calculateTableBill(idMesa);
             return new ResponseEntity<>("Total: " + total, HttpStatus.ACCEPTED);
         } catch (OrderServicesException ex) {
             Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
             return new ResponseEntity<>("No se ha podido calcular el total", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     *
+     * @param idMesa
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.DELETE, path = "remove/{idmesa}")
+    public ResponseEntity<?> deleteOrderByIdTable(@PathVariable("idmesa") Integer idMesa) {
+        try {
+            restOrderServices.releaseTable(idMesa);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (OrderServicesException ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("No se ha podido eliminar la orden", HttpStatus.NOT_FOUND);
         }
     }
 
